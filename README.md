@@ -11,11 +11,8 @@ up at least one of them.
 
 ## 🚀 Quick Start
 
-1. **Use this template** → click the green *"Use this template"* button at
-   the top of this repository, then **"Create a new repository"** (not
-   *"Open in a codespace"* — that just opens a temporary dev environment,
-   it won't have the workflow running on a schedule). This creates your own
-   independent repository, not a fork — no history tied back to this one.
+1. **Use this template** (the green button at the top) → **Create a new repository** (not
+   *Open in a codespace*).
 2. **Create the `GH_STARS_PAT`** (fine-grained)
 
    1. GitHub → **Settings** (your account) → **Developer settings** →
