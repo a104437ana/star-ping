@@ -16,10 +16,7 @@ up at least one of them.
    *"Open in a codespace"* — that just opens a temporary dev environment,
    it won't have the workflow running on a schedule). This creates your own
    independent repository, not a fork — no history tied back to this one.
-2. **Enable Actions** → in your new repository, go to **Actions** and
-   confirm it's enabled (repositories created from a template usually have
-   it enabled by default).
-3. **Create the `GH_STARS_PAT`** (fine-grained)
+2. **Create the `GH_STARS_PAT`** (fine-grained)
 
    1. GitHub → **Settings** (your account) → **Developer settings** →
       **Personal access tokens → Fine-grained tokens → Generate new token**.
@@ -29,8 +26,8 @@ up at least one of them.
    4. **Permissions → Repository permissions → Metadata**: `Read-only`.
       Don't enable any other permission.
    5. Generate the token and keep it somewhere safe for a moment — you'll
-      paste it in step 5.
-4. **Set up your notification channel(s)** — you need **at least one** of
+      paste it in step 4.
+3. **Set up your notification channel(s)** — you need **at least one** of
    the three below, pick whichever you want (any combination works).
 
    #### Email
@@ -45,45 +42,47 @@ up at least one of them.
    2. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords).
    3. Create a new App Password (you can name it "star-ping").
    4. Copy the generated password (16 characters, no spaces) — you'll paste
-      it in step 5.
+      it in step 4.
 
    #### Discord
 
    1. In your Discord server: **Server Settings → Integrations → Webhooks
       → New Webhook**.
    2. Pick the channel you want notifications in, then **Copy Webhook
-      URL** — you'll paste it in step 5.
+      URL** — you'll paste it in step 4.
 
    #### Telegram
 
    1. In Telegram, open a chat with **@BotFather** and send `/newbot`,
       then follow the prompts (pick a name and a username). It replies
-      with a **bot token** — you'll paste it in step 5.
+      with a **bot token** — you'll paste it in step 4.
    2. Start a chat with your new bot (search for its username and press
       *Start*), and send it any message.
    3. Open `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates` in a
       browser (with your real token in the URL) and look for
       `"chat":{"id": ...}` in the response — that number is your chat ID,
-      you'll also paste it in step 5.
-5. **Add the secrets to the repo** → **Settings → Secrets and variables →
+      you'll also paste it in step 4.
+4. **Add the secrets to the repo** → **Settings → Secrets and variables →
    Actions → New repository secret**, one by one:
 
    | Secret | What it is | Needed for |
    |---|---|---|
-   | `GH_STARS_PAT` | The fine-grained PAT from step 3 | **Required**, always |
+   | `GH_STARS_PAT` | The fine-grained PAT from step 2 | **Required**, always |
    | `GMAIL_USER` | Your Gmail address (the sender) | Email (all three email secrets together) |
-   | `GMAIL_APP_PASSWORD` | The App Password from step 4 | Email (all three email secrets together) |
+   | `GMAIL_APP_PASSWORD` | The App Password from step 3 | Email (all three email secrets together) |
    | `NOTIFY_EMAIL` | The address that receives the notifications (can be the same as `GMAIL_USER`) | Email (all three email secrets together) |
-   | `DISCORD_WEBHOOK_URL` | The webhook URL from step 4 | Optional — Discord |
-   | `TELEGRAM_BOT_TOKEN` | The bot token from step 4 | Optional — Telegram (both this and the next one) |
-   | `TELEGRAM_CHAT_ID` | The chat ID from step 4 | Optional — Telegram (both this and the previous one) |
+   | `DISCORD_WEBHOOK_URL` | The webhook URL from step 3 | Optional — Discord |
+   | `TELEGRAM_BOT_TOKEN` | The bot token from step 3 | Optional — Telegram (both this and the next one) |
+   | `TELEGRAM_CHAT_ID` | The chat ID from step 3 | Optional — Telegram (both this and the previous one) |
 
    `GH_STARS_PAT` is always required. Beyond that, you need **at least
    one** fully-configured channel — all three email secrets together, or
    `DISCORD_WEBHOOK_URL`, or both Telegram secrets together. Set up more
    than one if you want notifications in more than one place.
-6. **Test it right away** — go to **Actions → star-ping → Run workflow**
-   instead of waiting for the daily cron. If any of your public
+5. **Test it right away** — go to **Actions → star-ping → Run workflow**
+   instead of waiting for the daily cron (if Actions aren't enabled yet
+   you'll see a banner there — click to turn them on first, repos created
+   from a template usually have them on already). If any of your public
    repositories already has at least one star, you'll get a notification
    immediately on whichever channel(s) you configured — that's the
    quickest way to confirm everything works end to end. (Repositories with
