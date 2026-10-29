@@ -27,8 +27,30 @@ Gmail SMTP whenever there's a difference.
    | `GMAIL_APP_PASSWORD` | App Password for the Gmail account (not your regular password) |
    | `NOTIFY_EMAIL` | The address that receives the notifications (can be the same as `GMAIL_USER`) |
 
-   See below for how to create the `GH_STARS_PAT` and the
-   `GMAIL_APP_PASSWORD`.
+   #### Creating the `GH_STARS_PAT` (fine-grained)
+
+   1. GitHub → **Settings** (your account) → **Developer settings** →
+      **Personal access tokens → Fine-grained tokens → Generate new token**.
+   2. **Resource owner**: your personal account.
+   3. **Repository access**: *All repositories* (it needs to see all public
+      repositories in order to list them).
+   4. **Permissions → Repository permissions → Metadata**: `Read-only`.
+      Don't enable any other permission.
+   5. Generate the token and paste it into the `GH_STARS_PAT` secret.
+
+   #### Creating the `GMAIL_APP_PASSWORD`
+
+   Gmail only accepts SMTP from third-party apps through an **App
+   Password**, which requires two-step verification to be enabled on the
+   account.
+
+   1. Enable two-step verification at
+      [myaccount.google.com/security](https://myaccount.google.com/security),
+      if it isn't already.
+   2. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords).
+   3. Create a new App Password (you can name it "star-ping").
+   4. Copy the generated password (16 characters, no spaces) into the
+      `GMAIL_APP_PASSWORD` secret.
 4. **Test it right away** — go to **Actions → star-ping → Run workflow**
    instead of waiting for the daily cron. If any of your public
    repositories already has at least one star, you'll get an email
@@ -74,30 +96,6 @@ exactly what's missing.
 - **No `workflow_dispatch` inputs** — the manual button exists only for
   testing, runs exactly the same logic as the cron, with no dynamic
   configuration options.
-
-### Creating the `GH_STARS_PAT` (fine-grained)
-
-1. GitHub → **Settings** (your account) → **Developer settings** →
-   **Personal access tokens → Fine-grained tokens → Generate new token**.
-2. **Resource owner**: your personal account.
-3. **Repository access**: *All repositories* (it needs to see all public
-   repositories in order to list them).
-4. **Permissions → Repository permissions → Metadata**: `Read-only`. Don't
-   enable any other permission.
-5. Generate the token and paste it into the `GH_STARS_PAT` secret.
-
-### Creating the `GMAIL_APP_PASSWORD`
-
-Gmail only accepts SMTP from third-party apps through an **App Password**,
-which requires two-step verification to be enabled on the account.
-
-1. Enable two-step verification at
-   [myaccount.google.com/security](https://myaccount.google.com/security),
-   if it isn't already.
-2. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords).
-3. Create a new App Password (you can name it "star-ping").
-4. Copy the generated password (16 characters, no spaces) into the
-   `GMAIL_APP_PASSWORD` secret.
 
 ## ➕ Adding other notification channels
 
