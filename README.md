@@ -16,13 +16,6 @@ up at least one of them.
    *"Open in a codespace"* — that just opens a temporary dev environment,
    it won't have the workflow running on a schedule). This creates your own
    independent repository, not a fork — no history tied back to this one.
-
-   On that screen you also pick **Public or Private** — your new repo does
-   **not** need to be public for star-ping to work for yourself. Private
-   works exactly the same (Actions, secrets, everything) — the only reason
-   to make it public later is if you want *other* people to be able to use
-   *your* copy as a template too. You can also change this anytime after,
-   in **Settings → General → Danger Zone**.
 2. **Enable Actions** → in your new repository, go to **Actions** and
    confirm it's enabled (repositories created from a template usually have
    it enabled by default).
