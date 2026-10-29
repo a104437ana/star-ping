@@ -4,10 +4,9 @@ A GitHub Action that runs once a day and alerts you (by email, Discord,
 and/or Telegram) when one of your public repositories gains
 (or loses) stars.
 
-No server, no database, no external service running 24/7 — just GitHub
-Actions itself and a `data.json` file versioned in the repo. All three
-notification channels are optional and independent; you just need to set
-up at least one of them.
+Tired of checking your repos' stars manually? I was, so I built this.
+Feel free to use it too. If you like it, give it a star... and yes, I
+will be notified if you do 😄
 
 ## 🚀 Quick Start
 
