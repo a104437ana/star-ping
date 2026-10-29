@@ -87,8 +87,10 @@ jobs:
 
       # Pushes the updated data.json straight onto the data branch via git
       # plumbing (hash-object/mktree/commit-tree), without ever checking
-      # that branch out — main's working tree and history are untouched,
-      # and the branch is created automatically on its first push.
+      # that branch out — main's working tree and history are untouched.
+      # Always a fresh orphan commit, force-pushed: the data branch is a
+      # snapshot of the latest state, not a history worth keeping, so it
+      # never accumulates commits over time.
       - name: Commit updated data.json to the data branch
         if: steps.stars.outputs.changed == 'true'
         run: |
@@ -96,12 +98,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           BLOB=$(git hash-object -w data.json)
           TREE=$(printf '100644 blob %s\tdata.json\n' "$BLOB" | git mktree)
-          if git rev-parse --verify origin/data >/dev/null 2>&1; then
-            COMMIT=$(git commit-tree "$TREE" -p origin/data -m "chore: update star counts")
-          else
-            COMMIT=$(git commit-tree "$TREE" -m "chore: update star counts")
-          fi
-          git push origin "$COMMIT:refs/heads/data"
+          COMMIT=$(git commit-tree "$TREE" -m "chore: update star counts")
+          git push --force origin "$COMMIT:refs/heads/data"
 
       # Current notification channel: email via Gmail SMTP. To add another
       # channel later (e.g. Discord), just add a step here that reads
