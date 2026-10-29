@@ -1,7 +1,7 @@
 # ⭐ star-ping
 
-A GitHub Action that runs once a day and alerts you — by email, Discord,
-and/or Telegram, your choice — when one of your public repositories gains
+A GitHub Action that runs once a day and alerts you (by email, Discord,
+and/or Telegram) when one of your public repositories gains
 (or loses) stars.
 
 No server, no database, no external service running 24/7 — just GitHub
