@@ -81,15 +81,9 @@ up at least one of them.
    one** fully-configured channel — all three email secrets together, or
    `DISCORD_WEBHOOK_URL`, or both Telegram secrets together. Set up more
    than one if you want notifications in more than one place.
-5. **Test it right away** — go to **Actions → star-ping → Run workflow**
-   instead of waiting for the daily cron (if Actions aren't enabled yet
-   you'll see a banner there — click to turn them on first, repos created
-   from a template usually have them on already). The very first run
-   always sends a confirmation notification on whichever channel(s) you
-   configured — "star-ping is active", plus the list of any repos that
-   already have stars, if any — so you immediately know it's wired up
-   correctly. From the second run onward, it only notifies when something
-   actually changes. It runs automatically every day at 08:00 UTC.
+5. **Test it right away** → **Actions → star-ping → Run workflow** →
+   you'll get a notification that it's active. From then on, it runs
+   automatically every day at 08:00 UTC.
 
 If `GH_STARS_PAT` is missing, or no channel is fully configured, the
 workflow **doesn't fail silently**: it automatically opens an Issue in
