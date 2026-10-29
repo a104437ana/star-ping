@@ -17,17 +17,7 @@ Gmail SMTP whenever there's a difference.
 2. **Enable Actions** → in your new repository, go to **Actions** and
    confirm it's enabled (repositories created from a template usually have
    it enabled by default).
-3. **Add the required secrets** → **Settings → Secrets and variables →
-   Actions → New repository secret**, one by one:
-
-   | Secret | What it is |
-   |---|---|
-   | `GH_STARS_PAT` | Fine-grained, read-only Personal Access Token, used to list your repositories and their star counts |
-   | `GMAIL_USER` | Your Gmail address (the sender) |
-   | `GMAIL_APP_PASSWORD` | App Password for the Gmail account (not your regular password) |
-   | `NOTIFY_EMAIL` | The address that receives the notifications (can be the same as `GMAIL_USER`) |
-
-   #### Creating the `GH_STARS_PAT` (fine-grained)
+3. **Create the `GH_STARS_PAT`** (fine-grained)
 
    1. GitHub → **Settings** (your account) → **Developer settings** →
       **Personal access tokens → Fine-grained tokens → Generate new token**.
@@ -36,9 +26,9 @@ Gmail SMTP whenever there's a difference.
       repositories in order to list them).
    4. **Permissions → Repository permissions → Metadata**: `Read-only`.
       Don't enable any other permission.
-   5. Generate the token and paste it into the `GH_STARS_PAT` secret.
-
-   #### Creating the `GMAIL_APP_PASSWORD`
+   5. Generate the token and keep it somewhere safe for a moment — you'll
+      paste it in step 5.
+4. **Create the `GMAIL_APP_PASSWORD`**
 
    Gmail only accepts SMTP from third-party apps through an **App
    Password**, which requires two-step verification to be enabled on the
@@ -49,9 +39,18 @@ Gmail SMTP whenever there's a difference.
       if it isn't already.
    2. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords).
    3. Create a new App Password (you can name it "star-ping").
-   4. Copy the generated password (16 characters, no spaces) into the
-      `GMAIL_APP_PASSWORD` secret.
-4. **Test it right away** — go to **Actions → star-ping → Run workflow**
+   4. Copy the generated password (16 characters, no spaces) — you'll paste
+      it in step 5.
+5. **Add the secrets to the repo** → **Settings → Secrets and variables →
+   Actions → New repository secret**, one by one:
+
+   | Secret | What it is |
+   |---|---|
+   | `GH_STARS_PAT` | The fine-grained PAT from step 3 |
+   | `GMAIL_USER` | Your Gmail address (the sender) |
+   | `GMAIL_APP_PASSWORD` | The App Password from step 4 |
+   | `NOTIFY_EMAIL` | The address that receives the notifications (can be the same as `GMAIL_USER`) |
+6. **Test it right away** — go to **Actions → star-ping → Run workflow**
    instead of waiting for the daily cron. If any of your public
    repositories already has at least one star, you'll get an email
    immediately — that's the quickest way to confirm the PAT and Gmail
