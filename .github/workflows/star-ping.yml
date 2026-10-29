@@ -1,0 +1,119 @@
+name: star-ping
+
+on:
+  schedule:
+    - cron: "0 8 * * *" # todos os dias às 08:00 UTC
+  workflow_dispatch: {} # botão manual "Run workflow" para testar, sem inputs
+
+permissions:
+  contents: write # necessário para o GITHUB_TOKEN fazer commit do data.json
+  issues: write # necessário para abrir uma Issue quando falta configuração
+
+jobs:
+  star-ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: "22"
+
+      # Verifica se todos os secrets necessários estão configurados. Se faltar
+      # algum, abre (ou reaproveita) uma Issue a explicar o que falta, e os
+      # steps seguintes são saltados — nunca falha silenciosamente nos logs.
+      - name: Check required secrets
+        id: check-secrets
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        env:
+          GH_STARS_PAT: ${{ secrets.GH_STARS_PAT }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+        with:
+          script: |
+            const required = ["GH_STARS_PAT", "GMAIL_USER", "GMAIL_APP_PASSWORD", "NOTIFY_EMAIL"];
+            const missing = required.filter((name) => !process.env[name]);
+            core.setOutput("missing", JSON.stringify(missing));
+
+            if (missing.length === 0) return;
+
+            const title = "⚠️ star-ping: configuração incompleta";
+            const { data: openIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+            });
+            if (openIssues.some((issue) => issue.title === title)) return;
+
+            const body = [
+              "O workflow **star-ping** não conseguiu correr porque faltam os seguintes secrets:",
+              "",
+              ...missing.map((name) => `- \`${name}\``),
+              "",
+              "Configura-os em **Settings → Secrets and variables → Actions → New repository secret** e consulta o [README](README.md#-quick-start) para instruções de como obter cada um.",
+              "",
+              "Esta Issue fecha-se automaticamente a próxima vez que o workflow correr com sucesso (podes fechá-la já se já configuraste tudo).",
+            ].join("\n");
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+            });
+
+      - name: Fetch star counts and compute diff
+        id: stars
+        if: steps.check-secrets.outputs.missing == '[]'
+        env:
+          GH_STARS_PAT: ${{ secrets.GH_STARS_PAT }}
+        run: node scripts/check-stars.js
+
+      - name: Commit updated data.json
+        if: steps.stars.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git commit -m "chore: update star counts"
+          git push
+
+      # Canal de notificação atual: email via Gmail SMTP. Para adicionar outro
+      # canal no futuro (ex: Discord), basta acrescentar um step aqui que leia
+      # steps.stars.outputs.notify / steps.stars.outputs.subject / email_body.html
+      # — não é preciso tocar no script.
+      - name: Send email notification
+        if: steps.stars.outputs.notify == 'true'
+        uses: dawidd6/action-send-mail@47af4a10b540781705f283a2cf1a9650713ac795
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: ${{ steps.stars.outputs.subject }}
+          to: ${{ secrets.NOTIFY_EMAIL }}
+          from: star-ping <${{ secrets.GMAIL_USER }}>
+          html_body: file://email_body.html
+
+      - name: Close stale configuration issue
+        if: steps.stars.outcome == 'success'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        with:
+          script: |
+            const title = "⚠️ star-ping: configuração incompleta";
+            const { data: openIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+            });
+            for (const issue of openIssues.filter((i) => i.title === title)) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: "closed",
+              });
+            }

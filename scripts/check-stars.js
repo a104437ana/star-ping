@@ -1,0 +1,160 @@
+#!/usr/bin/env node
+// Fetches star counts for the authenticated user's public, non-fork repos,
+// diffs them against data.json, writes the updated file, and exposes
+// the result through GITHUB_OUTPUT so the workflow can decide whether to
+// commit and/or notify. Notification delivery itself lives in the workflow
+// (as a separate step), not here, so adding a new channel later (e.g.
+// Discord) never requires touching this file.
+
+const fs = require("fs");
+const path = require("path");
+
+const DATA_FILE = path.join(process.cwd(), "data.json");
+const EMAIL_BODY_FILE = path.join(process.cwd(), "email_body.html");
+const API_ROOT = "https://api.github.com";
+
+async function githubRequest(pat, url) {
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${pat}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "star-ping",
+    },
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(
+      `GitHub API request failed (${res.status} ${res.statusText}) for ${url}: ${body}`
+    );
+  }
+  return res.json();
+}
+
+async function fetchPublicOwnedRepos(pat) {
+  const repos = [];
+  let page = 1;
+  for (;;) {
+    const url = `${API_ROOT}/user/repos?affiliation=owner&visibility=public&per_page=100&page=${page}`;
+    const batch = await githubRequest(pat, url);
+    repos.push(...batch.filter((repo) => !repo.fork));
+    if (batch.length < 100) break;
+    page += 1;
+  }
+  return repos;
+}
+
+function loadPreviousStars() {
+  if (!fs.existsSync(DATA_FILE)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function setOutput(name, value) {
+  fs.appendFileSync(process.env.GITHUB_OUTPUT, `${name}=${value}\n`);
+}
+
+function renderEmailBody(changes) {
+  const rows = changes
+    .map(({ repo, previous, current, diff }) => {
+      const sign = diff > 0 ? "+" : "";
+      const color = diff > 0 ? "#1a7f37" : "#cf222e";
+      return `<tr>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;">
+          <a href="https://github.com/${repo}">${repo}</a>
+        </td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;">${previous} → ${current}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;color:${color};font-weight:600;">${sign}${diff}</td>
+      </tr>`;
+    })
+    .join("\n");
+
+  return `<!doctype html>
+<html>
+  <body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;">
+    <h2>⭐ star-ping</h2>
+    <p>Houve alterações nas estrelas dos teus repositórios públicos:</p>
+    <table style="border-collapse:collapse;width:100%;max-width:480px;">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;">Repositório</th>
+          <th style="text-align:right;padding:6px 10px;border-bottom:2px solid #333;">Estrelas</th>
+          <th style="text-align:right;padding:6px 10px;border-bottom:2px solid #333;">Δ</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+  </body>
+</html>`;
+}
+
+async function main() {
+  const pat = process.env.GH_STARS_PAT;
+  if (!pat) {
+    throw new Error("GH_STARS_PAT não está definido no ambiente.");
+  }
+
+  const repos = await fetchPublicOwnedRepos(pat);
+  const current = {};
+  for (const repo of repos) {
+    current[repo.full_name] = repo.stargazers_count;
+  }
+
+  const previous = loadPreviousStars();
+  const changes = [];
+
+  if (previous !== null) {
+    for (const [repoName, currentCount] of Object.entries(current)) {
+      if (!(repoName in previous)) continue; // new repo: baseline silently, no notification
+      const previousCount = previous[repoName];
+      if (previousCount !== currentCount) {
+        changes.push({
+          repo: repoName,
+          previous: previousCount,
+          current: currentCount,
+          diff: currentCount - previousCount,
+        });
+      }
+    }
+  }
+
+  const sortedCurrent = Object.fromEntries(
+    Object.entries(current).sort(([a], [b]) => a.localeCompare(b))
+  );
+  const changed = JSON.stringify(sortedCurrent) !== JSON.stringify(previous ?? {});
+
+  if (changed) {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(sortedCurrent, null, 2) + "\n");
+  }
+
+  const notify = changes.length > 0;
+  if (notify) {
+    fs.writeFileSync(EMAIL_BODY_FILE, renderEmailBody(changes));
+  }
+
+  setOutput("changed", changed);
+  setOutput("notify", notify);
+  setOutput(
+    "subject",
+    notify
+      ? `⭐ star-ping: ${changes.length} repositório(s) com alterações`
+      : ""
+  );
+
+  console.log(`Repositórios verificados: ${Object.keys(current).length}`);
+  console.log(`Primeira execução: ${previous === null}`);
+  console.log(`Alterações a notificar: ${changes.length}`);
+  for (const c of changes) {
+    console.log(`  ${c.repo}: ${c.previous} -> ${c.current} (${c.diff > 0 ? "+" : ""}${c.diff})`);
+  }
+}
+
+main().catch((err) => {
+  console.error(err.stack || err.message);
+  process.exit(1);
+});
