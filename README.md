@@ -48,8 +48,11 @@ triggers a notification.
    run.
 3. If there are differences, it sends an email (via Gmail SMTP) listing
    which repositories changed and by how much.
-4. It commits the updated `data.json` back to the repo, using the
-   workflow's automatic `GITHUB_TOKEN` — never the PAT.
+4. It pushes the updated `data.json` to a dedicated `data` branch, using
+   the workflow's automatic `GITHUB_TOKEN` — never the PAT. That branch is
+   created automatically on the first run and only ever holds `data.json`;
+   keeping it off `main` means these automated updates never clutter your
+   actual commit history. You don't need to create it yourself.
 
 ## 🔐 Security
 
