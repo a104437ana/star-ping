@@ -137,25 +137,6 @@ your repository explaining exactly what's missing.
   testing, runs exactly the same logic as the cron, with no dynamic
   configuration options.
 
-## ➕ Adding other notification channels
-
-Email, Discord, and Telegram are all optional and independent — each only
-runs if its own secrets are set (see the [Quick Start](#-quick-start) for
-how to get them), and you need at least one of the three configured. Skip
-whichever you don't want; those steps are simply skipped, nothing else
-changes. Remove the secret(s) later to turn a channel back off (as long as
-at least one other channel stays configured).
-
-`scripts/check-stars.js` doesn't know anything about email, Discord, or
-Telegram specifically — it only computes the diff and writes it out in two
-channel-agnostic files: `changes.json` (the raw list of what changed) and
-`email_body.html` (pre-rendered HTML, built for convenience since email
-needs HTML anyway). To add another channel (Slack, a generic webhook,
-whatever), add a new step in `.github/workflows/star-ping.yml`, gated on
-`steps.stars.outputs.notify == 'true'`, that reads `changes.json` and
-formats it however that channel needs — the same pattern the Discord and
-Telegram steps already follow. No need to touch the script.
-
 ## 🎯 Filtering which repos are tracked
 
 By default, every public, non-fork repository you own is tracked.
@@ -178,6 +159,25 @@ sensitive). Leave both unset to track everything. If you only set
 `REPO_BLOCKLIST`, everything except those repos is tracked. If you set
 both, `REPO_ALLOWLIST` is applied first, then `REPO_BLOCKLIST` is applied
 on top of that — a repo listed in both ends up excluded.
+
+## ➕ Adding other notification channels
+
+Email, Discord, and Telegram are all optional and independent — each only
+runs if its own secrets are set (see the [Quick Start](#-quick-start) for
+how to get them), and you need at least one of the three configured. Skip
+whichever you don't want; those steps are simply skipped, nothing else
+changes. Remove the secret(s) later to turn a channel back off (as long as
+at least one other channel stays configured).
+
+`scripts/check-stars.js` doesn't know anything about email, Discord, or
+Telegram specifically — it only computes the diff and writes it out in two
+channel-agnostic files: `changes.json` (the raw list of what changed) and
+`email_body.html` (pre-rendered HTML, built for convenience since email
+needs HTML anyway). To add another channel (Slack, a generic webhook,
+whatever), add a new step in `.github/workflows/star-ping.yml`, gated on
+`steps.stars.outputs.notify == 'true'`, that reads `changes.json` and
+formats it however that channel needs — the same pattern the Discord and
+Telegram steps already follow. No need to touch the script.
 
 ## ⭐ Stars
 
