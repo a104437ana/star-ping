@@ -107,6 +107,8 @@ jobs:
         if: steps.check-secrets.outputs.blocked == 'false'
         env:
           GH_STARS_PAT: ${{ secrets.GH_STARS_PAT }}
+          REPO_ALLOWLIST: ${{ vars.REPO_ALLOWLIST }}
+          REPO_BLOCKLIST: ${{ vars.REPO_BLOCKLIST }}
         run: node scripts/check-stars.js
 
       # Pushes the updated data.json straight onto the data branch via git

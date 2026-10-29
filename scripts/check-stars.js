@@ -48,6 +48,16 @@ async function fetchPublicOwnedRepos(pat) {
   return repos;
 }
 
+function parseRepoList(envValue) {
+  if (!envValue) return new Set();
+  return new Set(
+    envValue
+      .split(",")
+      .map((name) => name.trim())
+      .filter(Boolean)
+  );
+}
+
 function loadPreviousStars() {
   if (!fs.existsSync(DATA_FILE)) return null;
   try {
@@ -124,7 +134,19 @@ async function main() {
     throw new Error("GH_STARS_PAT is not set in the environment.");
   }
 
-  const repos = await fetchPublicOwnedRepos(pat);
+  const allowlist = parseRepoList(process.env.REPO_ALLOWLIST);
+  const blocklist = parseRepoList(process.env.REPO_BLOCKLIST);
+
+  let repos = await fetchPublicOwnedRepos(pat);
+  // Allowlist narrows the set first; blocklist then removes from whatever
+  // remains, so a repo listed in both ends up excluded.
+  if (allowlist.size > 0) {
+    repos = repos.filter((repo) => allowlist.has(repo.name));
+  }
+  if (blocklist.size > 0) {
+    repos = repos.filter((repo) => !blocklist.has(repo.name));
+  }
+
   const current = {};
   for (const repo of repos) {
     current[repo.full_name] = repo.stargazers_count;

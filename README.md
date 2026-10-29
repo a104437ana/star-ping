@@ -156,6 +156,29 @@ whatever), add a new step in `.github/workflows/star-ping.yml`, gated on
 formats it however that channel needs — the same pattern the Discord and
 Telegram steps already follow. No need to touch the script.
 
+## 🎯 Filtering which repos are tracked
+
+By default, every public, non-fork repository you own is tracked.
+
+If you want to limit which repos are tracked, you have two options:
+
+1. **Allowlist** — only the repos you explicitly list are tracked,
+   everything else is ignored. Set `REPO_ALLOWLIST` under **Settings →
+   Secrets and variables → Actions → Variables** to a comma-separated
+   list of repo names — e.g. `cool-app,side-project` to only track
+   those two.
+2. **Blocklist** — every repo is tracked except the ones you explicitly
+   list. Set `REPO_BLOCKLIST` under **Settings → Secrets and variables →
+   Actions → Variables** to a comma-separated list of repo names — e.g.
+   `homework-repo,dotfiles` to track everything except those two.
+
+Both are optional repository Variables (not Secrets — repo names aren't
+sensitive). Leave both unset to track everything. If you only set
+`REPO_ALLOWLIST`, only those repos are tracked. If you only set
+`REPO_BLOCKLIST`, everything except those repos is tracked. If you set
+both, `REPO_ALLOWLIST` is applied first, then `REPO_BLOCKLIST` is applied
+on top of that — a repo listed in both ends up excluded.
+
 ## ⭐ Stars
 
 [![a104437ana/star-ping stars](https://repo-stars.vercel.app/api/stars-badge?repo=a104437ana%2Fstar-ping)](https://repo-stars.vercel.app)
