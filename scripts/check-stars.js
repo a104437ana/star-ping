@@ -76,12 +76,12 @@ function renderEmailBody(changes) {
 <html>
   <body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;">
     <h2>⭐ star-ping</h2>
-    <p>Houve alterações nas estrelas dos teus repositórios públicos:</p>
+    <p>Your public repositories had some star changes:</p>
     <table style="border-collapse:collapse;width:100%;max-width:480px;">
       <thead>
         <tr>
-          <th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;">Repositório</th>
-          <th style="text-align:right;padding:6px 10px;border-bottom:2px solid #333;">Estrelas</th>
+          <th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;">Repository</th>
+          <th style="text-align:right;padding:6px 10px;border-bottom:2px solid #333;">Stars</th>
           <th style="text-align:right;padding:6px 10px;border-bottom:2px solid #333;">Δ</th>
         </tr>
       </thead>
@@ -96,7 +96,7 @@ function renderEmailBody(changes) {
 async function main() {
   const pat = process.env.GH_STARS_PAT;
   if (!pat) {
-    throw new Error("GH_STARS_PAT não está definido no ambiente.");
+    throw new Error("GH_STARS_PAT is not set in the environment.");
   }
 
   const repos = await fetchPublicOwnedRepos(pat);
@@ -142,13 +142,13 @@ async function main() {
   setOutput(
     "subject",
     notify
-      ? `⭐ star-ping: ${changes.length} repositório(s) com alterações`
+      ? `⭐ star-ping: ${changes.length} repositor${changes.length === 1 ? "y" : "ies"} changed`
       : ""
   );
 
-  console.log(`Repositórios verificados: ${Object.keys(current).length}`);
-  console.log(`Primeira execução: ${previous === null}`);
-  console.log(`Alterações a notificar: ${changes.length}`);
+  console.log(`Repositories checked: ${Object.keys(current).length}`);
+  console.log(`First run: ${previous === null}`);
+  console.log(`Changes to notify: ${changes.length}`);
   for (const c of changes) {
     console.log(`  ${c.repo}: ${c.previous} -> ${c.current} (${c.diff > 0 ? "+" : ""}${c.diff})`);
   }

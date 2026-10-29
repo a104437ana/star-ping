@@ -2,12 +2,12 @@ name: star-ping
 
 on:
   schedule:
-    - cron: "0 8 * * *" # todos os dias às 08:00 UTC
-  workflow_dispatch: {} # botão manual "Run workflow" para testar, sem inputs
+    - cron: "0 8 * * *" # every day at 08:00 UTC
+  workflow_dispatch: {} # manual "Run workflow" button for testing, no inputs
 
 permissions:
-  contents: write # necessário para o GITHUB_TOKEN fazer commit do data.json
-  issues: write # necessário para abrir uma Issue quando falta configuração
+  contents: write # needed so GITHUB_TOKEN can commit data.json
+  issues: write # needed to open an Issue when configuration is missing
 
 jobs:
   star-ping:
@@ -21,9 +21,9 @@ jobs:
         with:
           node-version: "22"
 
-      # Verifica se todos os secrets necessários estão configurados. Se faltar
-      # algum, abre (ou reaproveita) uma Issue a explicar o que falta, e os
-      # steps seguintes são saltados — nunca falha silenciosamente nos logs.
+      # Checks that all required secrets are configured. If any are
+      # missing, opens (or reuses) an Issue explaining what's missing, and
+      # the remaining steps are skipped — never fails silently in the logs.
       - name: Check required secrets
         id: check-secrets
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
@@ -40,7 +40,7 @@ jobs:
 
             if (missing.length === 0) return;
 
-            const title = "⚠️ star-ping: configuração incompleta";
+            const title = "⚠️ star-ping: incomplete configuration";
             const { data: openIssues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -49,13 +49,13 @@ jobs:
             if (openIssues.some((issue) => issue.title === title)) return;
 
             const body = [
-              "O workflow **star-ping** não conseguiu correr porque faltam os seguintes secrets:",
+              "The **star-ping** workflow couldn't run because the following secrets are missing:",
               "",
               ...missing.map((name) => `- \`${name}\``),
               "",
-              "Configura-os em **Settings → Secrets and variables → Actions → New repository secret** e consulta o [README](README.md#-quick-start) para instruções de como obter cada um.",
+              "Add them under **Settings → Secrets and variables → Actions → New repository secret** and check the [README](README.md#-quick-start) for instructions on how to get each one.",
               "",
-              "Esta Issue fecha-se automaticamente a próxima vez que o workflow correr com sucesso (podes fechá-la já se já configuraste tudo).",
+              "This Issue closes automatically the next time the workflow runs successfully (feel free to close it yourself once everything is configured).",
             ].join("\n");
 
             await github.rest.issues.create({
@@ -81,10 +81,10 @@ jobs:
           git commit -m "chore: update star counts"
           git push
 
-      # Canal de notificação atual: email via Gmail SMTP. Para adicionar outro
-      # canal no futuro (ex: Discord), basta acrescentar um step aqui que leia
+      # Current notification channel: email via Gmail SMTP. To add another
+      # channel later (e.g. Discord), just add a step here that reads
       # steps.stars.outputs.notify / steps.stars.outputs.subject / email_body.html
-      # — não é preciso tocar no script.
+      # — no need to touch the script.
       - name: Send email notification
         if: steps.stars.outputs.notify == 'true'
         uses: dawidd6/action-send-mail@47af4a10b540781705f283a2cf1a9650713ac795
@@ -103,7 +103,7 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           script: |
-            const title = "⚠️ star-ping: configuração incompleta";
+            const title = "⚠️ star-ping: incomplete configuration";
             const { data: openIssues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
