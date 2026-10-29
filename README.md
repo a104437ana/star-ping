@@ -93,7 +93,8 @@ your repository explaining exactly what's missing.
 
 1. Once a day (cron `0 8 * * *`, or manually via *Run workflow*), the
    workflow uses the `GH_STARS_PAT` to list all your public, non-fork
-   repositories along with their star counts.
+   repositories along with their star counts. Want a different time? Edit
+   the `cron` line in `.github/workflows/star-ping.yml`.
 2. It compares that list against the `data.json` saved from the previous
    run.
 3. If there are differences, it notifies you on whichever channel(s) you
