@@ -15,9 +15,6 @@ up at least one of them.
    *Open in a codespace*).
 2. **Create the `GH_STARS_PAT`** (fine-grained)
 
-   <details>
-   <summary>How to create it</summary>
-
    1. GitHub → **Settings** (your account) → **Developer settings** →
       **Personal access tokens → Fine-grained tokens → Generate new token**.
    2. **Resource owner**: your personal account.
@@ -27,8 +24,6 @@ up at least one of them.
       Don't enable any other permission.
    5. Generate the token and keep it somewhere safe for a moment — you'll
       paste it in step 4.
-
-   </details>
 3. **Set up your notification channel(s)** — you need **at least one** of
    the three below (Email, Discord or Telegram), pick whichever you want (any combination works).
 
