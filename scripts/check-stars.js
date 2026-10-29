@@ -62,13 +62,18 @@ function setOutput(name, value) {
 }
 
 function renderEmailBody(changes, isFirstRun) {
+  // The first-ever run is purely a "we're alive" confirmation — no star
+  // list, so it doesn't read as a data dump of everything that already
+  // existed. A genuinely new repo showing up later still gets listed
+  // normally, since that's real news, not baseline noise.
   const intro = isFirstRun
     ? "<p>✅ <strong>star-ping is now active</strong> and tracking your public repositories.</p>"
     : "<p>Your public repositories had some star changes:</p>";
-  const table =
-    changes.length === 0
-      ? "<p>No repositories have stars yet — you'll get notified as soon as one does.</p>"
-      : renderTable(changes);
+  const table = isFirstRun
+    ? ""
+    : changes.length === 0
+    ? "<p>No repositories have stars yet — you'll get notified as soon as one does.</p>"
+    : renderTable(changes);
 
   return `<!doctype html>
 <html>
@@ -85,7 +90,7 @@ function renderTable(changes) {
     .map(({ repo, previous, current, diff, isNew }) => {
       const sign = diff > 0 ? "+" : "";
       const color = diff > 0 ? "#1a7f37" : "#cf222e";
-      const countCell = isNew ? `new → ${current}` : `${previous} → ${current}`;
+      const countCell = `${previous} → ${current}`;
       const badge = isNew
         ? ' <span style="font-size:11px;font-weight:600;color:#1a7f37;border:1px solid #1a7f37;border-radius:3px;padding:1px 4px;">NEW</span>'
         : "";
@@ -178,8 +183,12 @@ async function main() {
   // after that only notifies when something actually changed.
   const notify = isFirstRun || changes.length > 0;
   if (notify) {
-    fs.writeFileSync(EMAIL_BODY_FILE, renderEmailBody(changes, isFirstRun));
-    fs.writeFileSync(CHANGES_FILE, JSON.stringify(changes, null, 2) + "\n");
+    // First run: no repo list on any channel, just the confirmation — so
+    // Discord/Telegram (which read changes.json) stay consistent with the
+    // email above.
+    const changesForNotification = isFirstRun ? [] : changes;
+    fs.writeFileSync(EMAIL_BODY_FILE, renderEmailBody(changesForNotification, isFirstRun));
+    fs.writeFileSync(CHANGES_FILE, JSON.stringify(changesForNotification, null, 2) + "\n");
   }
 
   setOutput("changed", changed);
@@ -187,7 +196,7 @@ async function main() {
   setOutput(
     "subject",
     isFirstRun
-      ? `⭐ star-ping is active!${changes.length > 0 ? ` ${changes.length} repositor${changes.length === 1 ? "y" : "ies"} already ha${changes.length === 1 ? "s" : "ve"} stars` : ""}`
+      ? "⭐ star-ping is active!"
       : notify
       ? `⭐ star-ping: ${changes.length} repositor${changes.length === 1 ? "y" : "ies"} changed`
       : ""

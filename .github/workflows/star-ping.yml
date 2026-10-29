@@ -156,7 +156,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          jq -r '.[] | "\(if .isNew then "🆕 " else "" end)**\(.repo)**: \(if .isNew then "new" else (.previous | tostring) end) → \(.current) (\(if .diff > 0 then "+" else "" end)\(.diff))"' changes.json > discord_lines.txt
+          jq -r '.[] | "\(if .isNew then "🆕 " else "" end)**\(.repo)**: \(.previous) → \(.current) (\(if .diff > 0 then "+" else "" end)\(.diff))"' changes.json > discord_lines.txt
           jq -Rs --arg subject "${{ steps.stars.outputs.subject }}" '{content: ("**" + $subject + "**\n" + .)}' discord_lines.txt > discord_payload.json
           curl -sf -X POST -H "Content-Type: application/json" -d @discord_payload.json "$DISCORD_WEBHOOK_URL"
 
@@ -169,7 +169,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          jq -r '.[] | "\(if .isNew then "🆕 " else "" end)<b>\(.repo | @html)</b>: \(if .isNew then "new" else (.previous | tostring) end) → \(.current) (\(if .diff > 0 then "+" else "" end)\(.diff))"' changes.json > telegram_lines.txt
+          jq -r '.[] | "\(if .isNew then "🆕 " else "" end)<b>\(.repo | @html)</b>: \(.previous) → \(.current) (\(if .diff > 0 then "+" else "" end)\(.diff))"' changes.json > telegram_lines.txt
           jq -Rs --arg subject "${{ steps.stars.outputs.subject }}" --arg chat_id "$TELEGRAM_CHAT_ID" '{chat_id: $chat_id, parse_mode: "HTML", text: ("<b>" + $subject + "</b>\n" + .)}' telegram_lines.txt > telegram_payload.json
           curl -sf -X POST -H "Content-Type: application/json" -d @telegram_payload.json "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage"
 
