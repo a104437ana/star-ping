@@ -129,7 +129,11 @@ jobs:
       # all three email secrets are set. Reads the ready-made
       # email_body.html that the script above wrote.
       - name: Send email notification
-        if: steps.stars.outputs.notify == 'true' && secrets.GMAIL_USER != '' && secrets.GMAIL_APP_PASSWORD != '' && secrets.NOTIFY_EMAIL != ''
+        if: steps.stars.outputs.notify == 'true' && env.GMAIL_USER != '' && env.GMAIL_APP_PASSWORD != '' && env.NOTIFY_EMAIL != ''
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
         uses: dawidd6/action-send-mail@47af4a10b540781705f283a2cf1a9650713ac795
         with:
           server_address: smtp.gmail.com
@@ -148,7 +152,7 @@ jobs:
       # same pattern: read changes.json, format it however that channel
       # needs.
       - name: Send Discord notification
-        if: steps.stars.outputs.notify == 'true' && secrets.DISCORD_WEBHOOK_URL != ''
+        if: steps.stars.outputs.notify == 'true' && env.DISCORD_WEBHOOK_URL != ''
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
@@ -160,7 +164,7 @@ jobs:
       # are configured. Same pattern as Discord: reads changes.json,
       # formats with jq, posts with curl via the Telegram Bot API.
       - name: Send Telegram notification
-        if: steps.stars.outputs.notify == 'true' && secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHAT_ID != ''
+        if: steps.stars.outputs.notify == 'true' && env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
