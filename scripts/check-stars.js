@@ -59,14 +59,18 @@ function setOutput(name, value) {
 
 function renderEmailBody(changes) {
   const rows = changes
-    .map(({ repo, previous, current, diff }) => {
+    .map(({ repo, previous, current, diff, isNew }) => {
       const sign = diff > 0 ? "+" : "";
       const color = diff > 0 ? "#1a7f37" : "#cf222e";
+      const countCell = isNew ? `new → ${current}` : `${previous} → ${current}`;
+      const badge = isNew
+        ? ' <span style="font-size:11px;font-weight:600;color:#1a7f37;border:1px solid #1a7f37;border-radius:3px;padding:1px 4px;">NEW</span>'
+        : "";
       return `<tr>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;">
-          <a href="https://github.com/${repo}">${repo}</a>
+          <a href="https://github.com/${repo}">${repo}</a>${badge}
         </td>
-        <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;">${previous} → ${current}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;">${countCell}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;color:${color};font-weight:600;">${sign}${diff}</td>
       </tr>`;
     })
@@ -106,20 +110,40 @@ async function main() {
   }
 
   const previous = loadPreviousStars();
+  // On the very first run ever, there's no previous data.json at all —
+  // treated the same as an empty baseline, so every repo goes through the
+  // same "newly-discovered repo" path below instead of a special case.
+  const previousForDiff = previous ?? {};
   const changes = [];
 
-  if (previous !== null) {
-    for (const [repoName, currentCount] of Object.entries(current)) {
-      if (!(repoName in previous)) continue; // new repo: baseline silently, no notification
-      const previousCount = previous[repoName];
-      if (previousCount !== currentCount) {
+  for (const [repoName, currentCount] of Object.entries(current)) {
+    const isNew = !(repoName in previousForDiff);
+    if (isNew) {
+      // Newly-discovered repo (just created, just made public, or this is
+      // the first run ever). It may already have stars, so it still gets
+      // notified — just with an implicit baseline of 0 rather than a true
+      // previous count. A repo that debuts with 0 stars is baselined
+      // silently, nothing to tell.
+      if (currentCount > 0) {
         changes.push({
           repo: repoName,
-          previous: previousCount,
+          previous: 0,
           current: currentCount,
-          diff: currentCount - previousCount,
+          diff: currentCount,
+          isNew: true,
         });
       }
+      continue;
+    }
+    const previousCount = previousForDiff[repoName];
+    if (previousCount !== currentCount) {
+      changes.push({
+        repo: repoName,
+        previous: previousCount,
+        current: currentCount,
+        diff: currentCount - previousCount,
+        isNew: false,
+      });
     }
   }
 

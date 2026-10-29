@@ -29,16 +29,17 @@ Gmail SMTP whenever there's a difference.
 
    See below for how to create the `GH_STARS_PAT` and the
    `GMAIL_APP_PASSWORD`.
-4. **Done** — the workflow runs every day at 08:00 UTC. If you want to test
-   it without waiting, go to **Actions → star-ping → Run workflow**.
+4. **Test it right away** — go to **Actions → star-ping → Run workflow**
+   instead of waiting for the daily cron. If any of your public
+   repositories already has at least one star, you'll get an email
+   immediately — that's the quickest way to confirm the PAT and Gmail
+   setup both work end to end. (Repositories with zero stars are just
+   recorded as a baseline, no email for those.) From then on, it runs
+   automatically every day at 08:00 UTC.
 
 If a secret is missing when the workflow runs, it **doesn't fail
 silently**: it automatically opens an Issue in your repository explaining
 exactly what's missing.
-
-On the first run you won't get any email — that first run only records the
-initial values in `data.json`. From the second run onward, any difference
-triggers a notification.
 
 ## 🔍 How it works
 
