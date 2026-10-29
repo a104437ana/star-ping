@@ -84,7 +84,9 @@ will be notified if you do 😄
    **you'll get a notification that it's active**.
 
    <img src="docs/email-active.png" alt="Example first-run email: star-ping is now active" width="480"><br>
-    From then on, it runs automatically every day at 08:00 UTC.
+    From then on, it runs automatically every day at 08:00 UTC, and you
+   receive a notification if you gained or lost stars — otherwise, of
+   course, you won't.
 
    <img src="docs/email-example.png" alt="Example email showing star count changes" width="480"><br>
 
