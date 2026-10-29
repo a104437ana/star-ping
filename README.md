@@ -40,7 +40,7 @@ up at least one of them.
 4. **Set up your notification channel(s)** — you need **at least one** of
    the three below, pick whichever you want (any combination works).
 
-   #### Email — create the `GMAIL_APP_PASSWORD`
+   #### Email
 
    Gmail only accepts SMTP from third-party apps through an **App
    Password**, which requires two-step verification to be enabled on the
@@ -78,9 +78,9 @@ up at least one of them.
    | Secret | What it is | Needed for |
    |---|---|---|
    | `GH_STARS_PAT` | The fine-grained PAT from step 3 | **Required**, always |
-   | `GMAIL_USER` | Your Gmail address (the sender) | Optional — Email (all three email secrets together) |
-   | `GMAIL_APP_PASSWORD` | The App Password from step 4 | Optional — Email (all three email secrets together) |
-   | `NOTIFY_EMAIL` | The address that receives the notifications (can be the same as `GMAIL_USER`) | Optional — Email (all three email secrets together) |
+   | `GMAIL_USER` | Your Gmail address (the sender) | Email (all three email secrets together) |
+   | `GMAIL_APP_PASSWORD` | The App Password from step 4 | Email (all three email secrets together) |
+   | `NOTIFY_EMAIL` | The address that receives the notifications (can be the same as `GMAIL_USER`) | Email (all three email secrets together) |
    | `DISCORD_WEBHOOK_URL` | The webhook URL from step 4 | Optional — Discord |
    | `TELEGRAM_BOT_TOKEN` | The bot token from step 4 | Optional — Telegram (both this and the next one) |
    | `TELEGRAM_CHAT_ID` | The chat ID from step 4 | Optional — Telegram (both this and the previous one) |
