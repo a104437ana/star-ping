@@ -82,7 +82,7 @@ up at least one of them.
    `DISCORD_WEBHOOK_URL`, or both Telegram secrets together. Set up more
    than one if you want notifications in more than one place.
 5. **Test it right away** → **Actions → star-ping → Run workflow** →
-   you'll get a notification that it's active. From then on, it runs
+   **you'll get a notification that it's active**. From then on, it runs
    automatically every day at 08:00 UTC.
 
 If `GH_STARS_PAT` is missing, or no channel is fully configured, the
