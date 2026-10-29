@@ -10,9 +10,10 @@ Gmail SMTP whenever there's a difference.
 ## 🚀 Quick Start
 
 1. **Use this template** → click the green *"Use this template"* button at
-   the top of this repository and create your own repository from it (not
-   a fork — the repository is entirely yours, with no history tied back to
-   this one).
+   the top of this repository, then **"Create a new repository"** (not
+   *"Open in a codespace"* — that just opens a temporary dev environment,
+   it won't have the workflow running on a schedule). This creates your own
+   independent repository, not a fork — no history tied back to this one.
 2. **Enable Actions** → in your new repository, go to **Actions** and
    confirm it's enabled (repositories created from a template usually have
    it enabled by default).
