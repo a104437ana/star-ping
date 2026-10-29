@@ -81,14 +81,12 @@ will be notified if you do 😄
    `DISCORD_WEBHOOK_URL`, or both Telegram secrets together. Set up more
    than one if you want notifications in more than one place.
 5. **Test it right away** → **Actions → star-ping → Run workflow** →
-   **you'll get a notification that it's active**. From then on, it runs
-   automatically every day at 08:00 UTC.
+   **you'll get a notification that it's active**.
 
    <img src="docs/email-active.png" alt="Example first-run email: star-ping is now active" width="480"><br>
-   <sub>First run — just the confirmation.</sub>
+    From then on, it runs automatically every day at 08:00 UTC.
 
    <img src="docs/email-example.png" alt="Example email showing star count changes" width="480"><br>
-   <sub>Later runs — a list of what changed.</sub>
 
 If `GH_STARS_PAT` is missing, or no channel is fully configured, the
 workflow **doesn't fail silently**: it automatically opens an Issue in
