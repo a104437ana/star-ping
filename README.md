@@ -35,10 +35,6 @@ up at least one of them.
    <details open>
    <summary>Email</summary>
 
-   Gmail only accepts SMTP from third-party apps through an **App
-   Password**, which requires two-step verification to be enabled on the
-   account.
-
    1. Enable two-step verification at
       [myaccount.google.com/security](https://myaccount.google.com/security),
       if it isn't already.
