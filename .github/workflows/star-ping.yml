@@ -21,10 +21,13 @@ jobs:
         with:
           node-version: "22"
 
-      # Checks that all required secrets are configured. If any are
-      # missing, opens (or reuses) an Issue explaining what's missing, and
-      # the remaining steps are skipped — never fails silently in the logs.
-      - name: Check required secrets
+      # Checks the only hard requirement (GH_STARS_PAT) and that at least
+      # one notification channel is fully configured — which channel is
+      # entirely up to you: email, Discord, and Telegram are all optional
+      # and independent, you just need at least one. If that's not met,
+      # opens (or reuses) an Issue explaining what's missing, and the
+      # remaining steps are skipped — never fails silently in the logs.
+      - name: Check configuration
         id: check-secrets
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         env:
@@ -32,13 +35,21 @@ jobs:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         with:
           script: |
-            const required = ["GH_STARS_PAT", "GMAIL_USER", "GMAIL_APP_PASSWORD", "NOTIFY_EMAIL"];
-            const missing = required.filter((name) => !process.env[name]);
-            core.setOutput("missing", JSON.stringify(missing));
+            const env = process.env;
+            const patMissing = !env.GH_STARS_PAT;
+            const hasEmail = !!(env.GMAIL_USER && env.GMAIL_APP_PASSWORD && env.NOTIFY_EMAIL);
+            const hasDiscord = !!env.DISCORD_WEBHOOK_URL;
+            const hasTelegram = !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID);
+            const noChannel = !hasEmail && !hasDiscord && !hasTelegram;
+            const blocked = patMissing || noChannel;
+            core.setOutput("blocked", blocked);
 
-            if (missing.length === 0) return;
+            if (!blocked) return;
 
             const title = "⚠️ star-ping: incomplete configuration";
             const { data: openIssues } = await github.rest.issues.listForRepo({
@@ -48,12 +59,25 @@ jobs:
             });
             if (openIssues.some((issue) => issue.title === title)) return;
 
+            const problems = [];
+            if (patMissing) {
+              problems.push("- `GH_STARS_PAT` is missing. This one is always required — it's how the workflow reads your repositories' star counts.");
+            }
+            if (noChannel) {
+              problems.push([
+                "- No notification channel is fully configured. You need **at least one** of these three (pick any, no need for all):",
+                "  - **Email**: `GMAIL_USER` + `GMAIL_APP_PASSWORD` + `NOTIFY_EMAIL`",
+                "  - **Discord**: `DISCORD_WEBHOOK_URL`",
+                "  - **Telegram**: `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`",
+              ].join("\n"));
+            }
+
             const body = [
-              "The **star-ping** workflow couldn't run because the following secrets are missing:",
+              "The **star-ping** workflow couldn't run because:",
               "",
-              ...missing.map((name) => `- \`${name}\``),
+              ...problems,
               "",
-              "Add them under **Settings → Secrets and variables → Actions → New repository secret** and check the [README](README.md#-quick-start) for instructions on how to get each one.",
+              "Add the missing secret(s) under **Settings → Secrets and variables → Actions → New repository secret** and check the [README](README.md#-quick-start) for instructions on how to get each one.",
               "",
               "This Issue closes automatically the next time the workflow runs successfully (feel free to close it yourself once everything is configured).",
             ].join("\n");
@@ -71,7 +95,7 @@ jobs:
       # branch, if it already exists (first run ever: nothing to pull, and
       # the script below treats that as "no previous data").
       - name: Fetch previous data.json from the data branch
-        if: steps.check-secrets.outputs.missing == '[]'
+        if: steps.check-secrets.outputs.blocked == 'false'
         run: |
           git fetch origin data 2>/dev/null || true
           if git rev-parse --verify origin/data >/dev/null 2>&1; then
@@ -80,7 +104,7 @@ jobs:
 
       - name: Fetch star counts and compute diff
         id: stars
-        if: steps.check-secrets.outputs.missing == '[]'
+        if: steps.check-secrets.outputs.blocked == 'false'
         env:
           GH_STARS_PAT: ${{ secrets.GH_STARS_PAT }}
         run: node scripts/check-stars.js
@@ -101,12 +125,11 @@ jobs:
           COMMIT=$(git commit-tree "$TREE" -m "chore: update star counts")
           git push --force origin "$COMMIT:refs/heads/data"
 
-      # Current notification channel: email via Gmail SMTP. To add another
-      # channel later (e.g. Discord), just add a step here that reads
-      # steps.stars.outputs.notify / steps.stars.outputs.subject / email_body.html
-      # — no need to touch the script.
+      # Email is one of three independent, optional channels — only runs if
+      # all three email secrets are set. Reads the ready-made
+      # email_body.html that the script above wrote.
       - name: Send email notification
-        if: steps.stars.outputs.notify == 'true'
+        if: steps.stars.outputs.notify == 'true' && secrets.GMAIL_USER != '' && secrets.GMAIL_APP_PASSWORD != '' && secrets.NOTIFY_EMAIL != ''
         uses: dawidd6/action-send-mail@47af4a10b540781705f283a2cf1a9650713ac795
         with:
           server_address: smtp.gmail.com
@@ -117,6 +140,34 @@ jobs:
           to: ${{ secrets.NOTIFY_EMAIL }}
           from: star-ping <${{ secrets.GMAIL_USER }}>
           html_body: file://email_body.html
+
+      # Discord: only runs if DISCORD_WEBHOOK_URL is configured. Reads
+      # changes.json (the generic diff the script wrote) and formats it as
+      # Discord markdown with jq, which ships preinstalled on the runner,
+      # so this needs no extra action to pin. Any other channel follows the
+      # same pattern: read changes.json, format it however that channel
+      # needs.
+      - name: Send Discord notification
+        if: steps.stars.outputs.notify == 'true' && secrets.DISCORD_WEBHOOK_URL != ''
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          jq -r '.[] | "\(if .isNew then "🆕 " else "" end)**\(.repo)**: \(if .isNew then "new" else (.previous | tostring) end) → \(.current) (\(if .diff > 0 then "+" else "" end)\(.diff))"' changes.json > discord_lines.txt
+          jq -Rs --arg subject "${{ steps.stars.outputs.subject }}" '{content: ("**" + $subject + "**\n" + .)}' discord_lines.txt > discord_payload.json
+          curl -sf -X POST -H "Content-Type: application/json" -d @discord_payload.json "$DISCORD_WEBHOOK_URL"
+
+      # Telegram: only runs if both TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID
+      # are configured. Same pattern as Discord: reads changes.json,
+      # formats with jq, posts with curl via the Telegram Bot API.
+      - name: Send Telegram notification
+        if: steps.stars.outputs.notify == 'true' && secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHAT_ID != ''
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          jq -r '.[] | "\(if .isNew then "🆕 " else "" end)<b>\(.repo | @html)</b>: \(if .isNew then "new" else (.previous | tostring) end) → \(.current) (\(if .diff > 0 then "+" else "" end)\(.diff))"' changes.json > telegram_lines.txt
+          jq -Rs --arg subject "${{ steps.stars.outputs.subject }}" --arg chat_id "$TELEGRAM_CHAT_ID" '{chat_id: $chat_id, parse_mode: "HTML", text: ("<b>" + $subject + "</b>\n" + .)}' telegram_lines.txt > telegram_payload.json
+          curl -sf -X POST -H "Content-Type: application/json" -d @telegram_payload.json "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage"
 
       - name: Close stale configuration issue
         if: steps.stars.outcome == 'success'

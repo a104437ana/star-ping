@@ -1,11 +1,13 @@
 # ⭐ star-ping
 
-A GitHub Action that runs once a day and emails you when one of your public
-repositories gains (or loses) stars.
+A GitHub Action that runs once a day and alerts you — by email, Discord,
+and/or Telegram, your choice — when one of your public repositories gains
+(or loses) stars.
 
 No server, no database, no external service running 24/7 — just GitHub
-Actions itself, a `data.json` file versioned in the repo, and an email via
-Gmail SMTP whenever there's a difference.
+Actions itself and a `data.json` file versioned in the repo. All three
+notification channels are optional and independent; you just need to set
+up at least one of them.
 
 ## 🚀 Quick Start
 
@@ -14,6 +16,13 @@ Gmail SMTP whenever there's a difference.
    *"Open in a codespace"* — that just opens a temporary dev environment,
    it won't have the workflow running on a schedule). This creates your own
    independent repository, not a fork — no history tied back to this one.
+
+   On that screen you also pick **Public or Private** — your new repo does
+   **not** need to be public for star-ping to work for yourself. Private
+   works exactly the same (Actions, secrets, everything) — the only reason
+   to make it public later is if you want *other* people to be able to use
+   *your* copy as a template too. You can also change this anytime after,
+   in **Settings → General → Danger Zone**.
 2. **Enable Actions** → in your new repository, go to **Actions** and
    confirm it's enabled (repositories created from a template usually have
    it enabled by default).
@@ -28,7 +37,10 @@ Gmail SMTP whenever there's a difference.
       Don't enable any other permission.
    5. Generate the token and keep it somewhere safe for a moment — you'll
       paste it in step 5.
-4. **Create the `GMAIL_APP_PASSWORD`**
+4. **Set up your notification channel(s)** — you need **at least one** of
+   the three below, pick whichever you want (any combination works).
+
+   #### Email — create the `GMAIL_APP_PASSWORD`
 
    Gmail only accepts SMTP from third-party apps through an **App
    Password**, which requires two-step verification to be enabled on the
@@ -41,26 +53,53 @@ Gmail SMTP whenever there's a difference.
    3. Create a new App Password (you can name it "star-ping").
    4. Copy the generated password (16 characters, no spaces) — you'll paste
       it in step 5.
+
+   #### Discord
+
+   1. In your Discord server: **Server Settings → Integrations → Webhooks
+      → New Webhook**.
+   2. Pick the channel you want notifications in, then **Copy Webhook
+      URL** — you'll paste it in step 5.
+
+   #### Telegram
+
+   1. In Telegram, open a chat with **@BotFather** and send `/newbot`,
+      then follow the prompts (pick a name and a username). It replies
+      with a **bot token** — you'll paste it in step 5.
+   2. Start a chat with your new bot (search for its username and press
+      *Start*), and send it any message.
+   3. Open `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates` in a
+      browser (with your real token in the URL) and look for
+      `"chat":{"id": ...}` in the response — that number is your chat ID,
+      you'll also paste it in step 5.
 5. **Add the secrets to the repo** → **Settings → Secrets and variables →
    Actions → New repository secret**, one by one:
 
-   | Secret | What it is |
-   |---|---|
-   | `GH_STARS_PAT` | The fine-grained PAT from step 3 |
-   | `GMAIL_USER` | Your Gmail address (the sender) |
-   | `GMAIL_APP_PASSWORD` | The App Password from step 4 |
-   | `NOTIFY_EMAIL` | The address that receives the notifications (can be the same as `GMAIL_USER`) |
+   | Secret | What it is | Needed for |
+   |---|---|---|
+   | `GH_STARS_PAT` | The fine-grained PAT from step 3 | **Required**, always |
+   | `GMAIL_USER` | Your Gmail address (the sender) | Optional — Email (all three email secrets together) |
+   | `GMAIL_APP_PASSWORD` | The App Password from step 4 | Optional — Email (all three email secrets together) |
+   | `NOTIFY_EMAIL` | The address that receives the notifications (can be the same as `GMAIL_USER`) | Optional — Email (all three email secrets together) |
+   | `DISCORD_WEBHOOK_URL` | The webhook URL from step 4 | Optional — Discord |
+   | `TELEGRAM_BOT_TOKEN` | The bot token from step 4 | Optional — Telegram (both this and the next one) |
+   | `TELEGRAM_CHAT_ID` | The chat ID from step 4 | Optional — Telegram (both this and the previous one) |
+
+   `GH_STARS_PAT` is always required. Beyond that, you need **at least
+   one** fully-configured channel — all three email secrets together, or
+   `DISCORD_WEBHOOK_URL`, or both Telegram secrets together. Set up more
+   than one if you want notifications in more than one place.
 6. **Test it right away** — go to **Actions → star-ping → Run workflow**
    instead of waiting for the daily cron. If any of your public
-   repositories already has at least one star, you'll get an email
-   immediately — that's the quickest way to confirm the PAT and Gmail
-   setup both work end to end. (Repositories with zero stars are just
-   recorded as a baseline, no email for those.) From then on, it runs
-   automatically every day at 08:00 UTC.
+   repositories already has at least one star, you'll get a notification
+   immediately on whichever channel(s) you configured — that's the
+   quickest way to confirm everything works end to end. (Repositories with
+   zero stars are just recorded as a baseline, no notification for those.)
+   From then on, it runs automatically every day at 08:00 UTC.
 
-If a secret is missing when the workflow runs, it **doesn't fail
-silently**: it automatically opens an Issue in your repository explaining
-exactly what's missing.
+If `GH_STARS_PAT` is missing, or no channel is fully configured, the
+workflow **doesn't fail silently**: it automatically opens an Issue in
+your repository explaining exactly what's missing.
 
 ## 🔍 How it works
 
@@ -69,7 +108,8 @@ exactly what's missing.
    repositories along with their star counts.
 2. It compares that list against the `data.json` saved from the previous
    run.
-3. If there are differences, it sends an email (via Gmail SMTP) listing
+3. If there are differences, it notifies you on whichever channel(s) you
+   configured — email (via Gmail SMTP), Discord, and/or Telegram — listing
    which repositories changed and by how much.
 4. It force-pushes the updated `data.json` to a dedicated `data` branch,
    using the workflow's automatic `GITHUB_TOKEN` — never the PAT. That
@@ -100,14 +140,22 @@ exactly what's missing.
 
 ## ➕ Adding other notification channels
 
-Email is the only channel implemented, but the workflow is designed to be
-easy to extend: the step that computes the diff (`scripts/check-stars.js`)
-knows nothing about email — it just writes a result (`changed`, `notify`,
-`subject`, `email_body.html`) that the sending step reads. To add, say, a
-Discord webhook, just add a new step in
-`.github/workflows/star-ping.yml` that reads
-`steps.stars.outputs.notify` and `email_body.html` — no need to touch the
-script.
+Email, Discord, and Telegram are all optional and independent — each only
+runs if its own secrets are set (see the [Quick Start](#-quick-start) for
+how to get them), and you need at least one of the three configured. Skip
+whichever you don't want; those steps are simply skipped, nothing else
+changes. Remove the secret(s) later to turn a channel back off (as long as
+at least one other channel stays configured).
+
+`scripts/check-stars.js` doesn't know anything about email, Discord, or
+Telegram specifically — it only computes the diff and writes it out in two
+channel-agnostic files: `changes.json` (the raw list of what changed) and
+`email_body.html` (pre-rendered HTML, built for convenience since email
+needs HTML anyway). To add another channel (Slack, a generic webhook,
+whatever), add a new step in `.github/workflows/star-ping.yml`, gated on
+`steps.stars.outputs.notify == 'true'`, that reads `changes.json` and
+formats it however that channel needs — the same pattern the Discord and
+Telegram steps already follow. No need to touch the script.
 
 ## ⭐ Stars
 

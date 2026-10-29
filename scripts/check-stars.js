@@ -1,16 +1,20 @@
 #!/usr/bin/env node
 // Fetches star counts for the authenticated user's public, non-fork repos,
-// diffs them against data.json, writes the updated file, and exposes
-// the result through GITHUB_OUTPUT so the workflow can decide whether to
-// commit and/or notify. Notification delivery itself lives in the workflow
-// (as a separate step), not here, so adding a new channel later (e.g.
-// Discord) never requires touching this file.
+// diffs them against data.json, writes the updated file, and exposes the
+// result through GITHUB_OUTPUT so the workflow can decide whether to commit
+// and/or notify. Notification delivery itself lives in the workflow, not
+// here: this script only computes the diff and writes it out in two forms —
+// email_body.html (ready-made HTML for the email step) and changes.json
+// (the raw diff, for any other channel to format however it needs). Adding
+// a new channel is just a new workflow step reading changes.json; this file
+// never needs to change for that.
 
 const fs = require("fs");
 const path = require("path");
 
 const DATA_FILE = path.join(process.cwd(), "data.json");
 const EMAIL_BODY_FILE = path.join(process.cwd(), "email_body.html");
+const CHANGES_FILE = path.join(process.cwd(), "changes.json");
 const API_ROOT = "https://api.github.com";
 
 async function githubRequest(pat, url) {
@@ -159,6 +163,7 @@ async function main() {
   const notify = changes.length > 0;
   if (notify) {
     fs.writeFileSync(EMAIL_BODY_FILE, renderEmailBody(changes));
+    fs.writeFileSync(CHANGES_FILE, JSON.stringify(changes, null, 2) + "\n");
   }
 
   setOutput("changed", changed);
