@@ -15,6 +15,9 @@ up at least one of them.
    *Open in a codespace*).
 2. **Create the `GH_STARS_PAT`** (fine-grained)
 
+   <details>
+   <summary>How to create it</summary>
+
    1. GitHub → **Settings** (your account) → **Developer settings** →
       **Personal access tokens → Fine-grained tokens → Generate new token**.
    2. **Resource owner**: your personal account.
@@ -24,10 +27,13 @@ up at least one of them.
       Don't enable any other permission.
    5. Generate the token and keep it somewhere safe for a moment — you'll
       paste it in step 4.
+
+   </details>
 3. **Set up your notification channel(s)** — you need **at least one** of
    the three below, pick whichever you want (any combination works).
 
-   #### Email
+   <details open>
+   <summary>Email</summary>
 
    Gmail only accepts SMTP from third-party apps through an **App
    Password**, which requires two-step verification to be enabled on the
@@ -41,14 +47,20 @@ up at least one of them.
    4. Copy the generated password (16 characters, no spaces) — you'll paste
       it in step 4.
 
-   #### Discord
+   </details>
+
+   <details>
+   <summary>Discord</summary>
 
    1. In your Discord server: **Server Settings → Integrations → Webhooks
       → New Webhook**.
    2. Pick the channel you want notifications in, then **Copy Webhook
       URL** — you'll paste it in step 4.
 
-   #### Telegram
+   </details>
+
+   <details>
+   <summary>Telegram</summary>
 
    1. In Telegram, open a chat with **@BotFather** and send `/newbot`,
       then follow the prompts (pick a name and a username). It replies
@@ -59,6 +71,8 @@ up at least one of them.
       browser (with your real token in the URL) and look for
       `"chat":{"id": ...}` in the response — that number is your chat ID,
       you'll also paste it in step 4.
+
+   </details>
 4. **Add the secrets to the repo** → **Settings → Secrets and variables →
    Actions → New repository secret**, one by one:
 
