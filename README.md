@@ -67,15 +67,15 @@ up at least one of them.
 4. **Add the secrets to the repo** → **Settings → Secrets and variables →
    Actions → New repository secret**, one by one:
 
-   | Secret | What it is | Needed for |
+   | Secret | Needed for | What it is |
    |---|---|---|
-   | `GH_STARS_PAT` | The fine-grained PAT from step 2 | All |
-   | `GMAIL_USER` | Your Gmail address (the sender) | Email |
-   | `GMAIL_APP_PASSWORD` | The App Password from step 3 | Email |
-   | `NOTIFY_EMAIL` | The address that receives the notifications (can be the same as `GMAIL_USER`) | Email |
-   | `DISCORD_WEBHOOK_URL` | The webhook URL from step 3 | Discord |
-   | `TELEGRAM_BOT_TOKEN` | The bot token from step 3 | Telegram |
-   | `TELEGRAM_CHAT_ID` | The chat ID from step 3 | Telegram |
+   | `GH_STARS_PAT` | All | The fine-grained PAT from step 2 |
+   | `GMAIL_USER` | Email | Your Gmail address (the sender) |
+   | `GMAIL_APP_PASSWORD` | Email | The App Password from step 3 |
+   | `NOTIFY_EMAIL` | Email | The address that receives the notifications (can be the same as `GMAIL_USER`) |
+   | `DISCORD_WEBHOOK_URL` | Discord | The webhook URL from step 3 |
+   | `TELEGRAM_BOT_TOKEN` | Telegram | The bot token from step 3 |
+   | `TELEGRAM_CHAT_ID` | Telegram | The chat ID from step 3 |
 
    `GH_STARS_PAT` is always required. Beyond that, you need **at least
    one** fully-configured channel — all three email secrets together, or
