@@ -84,9 +84,9 @@ will be notified if you do 😄
    **you'll get a notification that it's active**.
 
    <img src="docs/email-active.png" alt="Example first-run email: star-ping is now active" width="480"><br>
-    From then on, it runs automatically every day at 08:00 UTC, and you
-   receive a notification if you gained or lost stars — otherwise, of
-   course, you won't.
+    From then on, it runs automatically once a day, and you receive a
+   notification if you gained or lost stars — otherwise, of course, you
+   won't.
 
    <img src="docs/email-example.png" alt="Example email showing star count changes" width="480"><br>
 
@@ -96,10 +96,15 @@ your repository explaining exactly what's missing.
 
 ## 🔍 How it works
 
-1. Every day at 08:00 UTC (cron `0 8 * * *`, or manually via *Run workflow*), the
+1. Every day at ~05:23 UTC (cron `23 5 * * *`, or manually via *Run workflow*), the
    workflow uses the `GH_STARS_PAT` to list all your public, non-fork
    repositories along with their star counts. Want a different time? Edit
    the `cron` line in `.github/workflows/star-ping.yml`.
+
+   > **Note:** GitHub Actions schedules are best-effort — GitHub itself
+   > warns that `schedule` runs can be delayed during periods of high
+   > load, sometimes by hours. If your notification shows up later than
+   > 05:23 UTC, that's why.
 2. It compares that list against the `data.json` saved from the previous
    run.
 3. If there are differences, it notifies you on whichever channel(s) you

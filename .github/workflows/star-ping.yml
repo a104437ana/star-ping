@@ -2,7 +2,7 @@ name: star-ping
 
 on:
   schedule:
-    - cron: "0 8 * * *" # every day at 08:00 UTC
+    - cron: "23 5 * * *" # once a day, ~05:23 UTC — off the hour, see README for why
   workflow_dispatch: {} # manual "Run workflow" button for testing, no inputs
 
 permissions:
