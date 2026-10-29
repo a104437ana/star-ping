@@ -69,13 +69,13 @@ up at least one of them.
 
    | Secret | What it is | Needed for |
    |---|---|---|
-   | `GH_STARS_PAT` | The fine-grained PAT from step 2 | **Required**, always |
-   | `GMAIL_USER` | Your Gmail address (the sender) | Email (all three email secrets together) |
-   | `GMAIL_APP_PASSWORD` | The App Password from step 3 | Email (all three email secrets together) |
-   | `NOTIFY_EMAIL` | The address that receives the notifications (can be the same as `GMAIL_USER`) | Email (all three email secrets together) |
-   | `DISCORD_WEBHOOK_URL` | The webhook URL from step 3 | Optional — Discord |
-   | `TELEGRAM_BOT_TOKEN` | The bot token from step 3 | Optional — Telegram (both this and the next one) |
-   | `TELEGRAM_CHAT_ID` | The chat ID from step 3 | Optional — Telegram (both this and the previous one) |
+   | `GH_STARS_PAT` | The fine-grained PAT from step 2 | All |
+   | `GMAIL_USER` | Your Gmail address (the sender) | Email |
+   | `GMAIL_APP_PASSWORD` | The App Password from step 3 | Email |
+   | `NOTIFY_EMAIL` | The address that receives the notifications (can be the same as `GMAIL_USER`) | Email |
+   | `DISCORD_WEBHOOK_URL` | The webhook URL from step 3 | Discord |
+   | `TELEGRAM_BOT_TOKEN` | The bot token from step 3 | Telegram |
+   | `TELEGRAM_CHAT_ID` | The chat ID from step 3 | Telegram |
 
    `GH_STARS_PAT` is always required. Beyond that, you need **at least
    one** fully-configured channel — all three email secrets together, or
