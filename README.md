@@ -91,7 +91,7 @@ your repository explaining exactly what's missing.
 
 ## 🔍 How it works
 
-1. Once a day (cron `0 8 * * *`, or manually via *Run workflow*), the
+1. Every day at 08:00 UTC (cron `0 8 * * *`, or manually via *Run workflow*), the
    workflow uses the `GH_STARS_PAT` to list all your public, non-fork
    repositories along with their star counts. Want a different time? Edit
    the `cron` line in `.github/workflows/star-ping.yml`.
