@@ -30,7 +30,7 @@ up at least one of them.
 
    </details>
 3. **Set up your notification channel(s)** — you need **at least one** of
-   the three below, pick whichever you want (any combination works).
+   the three below (Email, Discord or Telegram), pick whichever you want (any combination works).
 
    <details open>
    <summary>Email</summary>
