@@ -61,7 +61,26 @@ function setOutput(name, value) {
   fs.appendFileSync(process.env.GITHUB_OUTPUT, `${name}=${value}\n`);
 }
 
-function renderEmailBody(changes) {
+function renderEmailBody(changes, isFirstRun) {
+  const intro = isFirstRun
+    ? "<p>✅ <strong>star-ping is now active</strong> and tracking your public repositories.</p>"
+    : "<p>Your public repositories had some star changes:</p>";
+  const table =
+    changes.length === 0
+      ? "<p>No repositories have stars yet — you'll get notified as soon as one does.</p>"
+      : renderTable(changes);
+
+  return `<!doctype html>
+<html>
+  <body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;">
+    <h2>⭐ star-ping</h2>
+    ${intro}
+    ${table}
+  </body>
+</html>`;
+}
+
+function renderTable(changes) {
   const rows = changes
     .map(({ repo, previous, current, diff, isNew }) => {
       const sign = diff > 0 ? "+" : "";
@@ -80,12 +99,7 @@ function renderEmailBody(changes) {
     })
     .join("\n");
 
-  return `<!doctype html>
-<html>
-  <body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;">
-    <h2>⭐ star-ping</h2>
-    <p>Your public repositories had some star changes:</p>
-    <table style="border-collapse:collapse;width:100%;max-width:480px;">
+  return `<table style="border-collapse:collapse;width:100%;max-width:480px;">
       <thead>
         <tr>
           <th style="text-align:left;padding:6px 10px;border-bottom:2px solid #333;">Repository</th>
@@ -96,9 +110,7 @@ function renderEmailBody(changes) {
       <tbody>
         ${rows}
       </tbody>
-    </table>
-  </body>
-</html>`;
+    </table>`;
 }
 
 async function main() {
@@ -114,6 +126,7 @@ async function main() {
   }
 
   const previous = loadPreviousStars();
+  const isFirstRun = previous === null;
   // On the very first run ever, there's no previous data.json at all —
   // treated the same as an empty baseline, so every repo goes through the
   // same "newly-discovered repo" path below instead of a special case.
@@ -160,9 +173,12 @@ async function main() {
     fs.writeFileSync(DATA_FILE, JSON.stringify(sortedCurrent, null, 2) + "\n");
   }
 
-  const notify = changes.length > 0;
+  // The very first run always notifies, even with zero stars anywhere —
+  // it's the confirmation that star-ping is actually working. Every run
+  // after that only notifies when something actually changed.
+  const notify = isFirstRun || changes.length > 0;
   if (notify) {
-    fs.writeFileSync(EMAIL_BODY_FILE, renderEmailBody(changes));
+    fs.writeFileSync(EMAIL_BODY_FILE, renderEmailBody(changes, isFirstRun));
     fs.writeFileSync(CHANGES_FILE, JSON.stringify(changes, null, 2) + "\n");
   }
 
@@ -170,7 +186,9 @@ async function main() {
   setOutput("notify", notify);
   setOutput(
     "subject",
-    notify
+    isFirstRun
+      ? `⭐ star-ping is active!${changes.length > 0 ? ` ${changes.length} repositor${changes.length === 1 ? "y" : "ies"} already ha${changes.length === 1 ? "s" : "ve"} stars` : ""}`
+      : notify
       ? `⭐ star-ping: ${changes.length} repositor${changes.length === 1 ? "y" : "ies"} changed`
       : ""
   );

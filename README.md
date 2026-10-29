@@ -84,12 +84,12 @@ up at least one of them.
 5. **Test it right away** — go to **Actions → star-ping → Run workflow**
    instead of waiting for the daily cron (if Actions aren't enabled yet
    you'll see a banner there — click to turn them on first, repos created
-   from a template usually have them on already). If any of your public
-   repositories already has at least one star, you'll get a notification
-   immediately on whichever channel(s) you configured — that's the
-   quickest way to confirm everything works end to end. (Repositories with
-   zero stars are just recorded as a baseline, no notification for those.)
-   From then on, it runs automatically every day at 08:00 UTC.
+   from a template usually have them on already). The very first run
+   always sends a confirmation notification on whichever channel(s) you
+   configured — "star-ping is active", plus the list of any repos that
+   already have stars, if any — so you immediately know it's wired up
+   correctly. From the second run onward, it only notifies when something
+   actually changes. It runs automatically every day at 08:00 UTC.
 
 If `GH_STARS_PAT` is missing, or no channel is fully configured, the
 workflow **doesn't fail silently**: it automatically opens an Issue in
